@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Dhulo Watch | AQI Dashboard (Phase 1)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        background-color: #f4f6f9;
+        color: #333;
+      }
+
+      header {
+        background-color: #111827;
+        color: #ffffff;
+        padding: 18px 30px;
+      }
+
+      header h2 {
+        margin: 0;
+      }
+
+      .container {
+        padding: 25px 30px;
+      }
+
+      select {
+        padding: 8px;
+        margin-bottom: 20px;
+        font-size: 14px;
+      }
+
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        margin-bottom: 30px;
+      }
+
+      .card {
+        background: #ffffff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      }
+
+      .card h4 {
+        margin: 0;
+        font-size: 13px;
+        color: #6b7280;
+      }
+
+      .card p {
+        margin-top: 10px;
+        font-size: 26px;
+        font-weight: bold;
+      }
+
+      .charts {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 35px;
+      }
+
+      canvas {
+        background: #ffffff;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      }
+
+      .insight {
+        margin-top: 30px;
+        background: #ffffff;
+        padding: 20px;
+        border-left: 5px solid #2563eb;
+        border-radius: 4px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+      }
+
+      .insight strong {
+        display: block;
+        margin-bottom: 6px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <h2>Dhulo Watch – Air Quality Dashboard (2025)</h2>
+    </header>
+
+    <div class="container">
+      <!-- Station Selector -->
+      <label for="station"><strong>Select Monitoring Station:</strong></label
+      ><br />
+      <select id="station">
+        <option>Kathmandu</option>
+        <option>Lalitpur</option>
+        <option>Pokhara</option>
+      </select>
+
+      <!-- KPI Cards -->
+      <div class="cards">
+        <div class="card">
+          <h4>Worst Month AQI</h4>
+          <p>178</p>
+        </div>
+        <div class="card">
+          <h4>Cleanest Month AQI</h4>
+          <p>62</p>
+        </div>
+        <div class="card">
+          <h4>Highest PM2.5</h4>
+          <p>96 µg/m³</p>
+        </div>
+        <div class="card">
+          <h4>Most Polluted Season</h4>
+          <p>Winter</p>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts">
+        <canvas id="monthlyAqiChart"></canvas>
+        <canvas id="seasonalPollutantChart"></canvas>
+        <canvas id="aqiCategoryChart"></canvas>
+      </div>
+
+      <!-- Insight Box -->
+      <div class="insight">
+        <strong>Key Insight</strong>
+        Air quality in 2025 shows strong seasonality. Winter months experience
+        the highest AQI due to temperature inversion and increased PM2.5
+        concentration, while monsoon months show significant improvement due to
+        pollutant washout.
+      </div>
+    </div>
+
+    <script>
+      /* -------------------------------
+   Monthly AQI Trend – 2025
+-------------------------------- */
+      new Chart(document.getElementById("monthlyAqiChart"), {
+        type: "line",
+        data: {
+          labels: [
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+          ],
+          datasets: [
+            {
+              label: "Average AQI",
+              data: [168, 160, 145, 120, 105, 82, 65, 62, 78, 110, 150, 178],
+              borderWidth: 2,
+              tension: 0.3,
+            },
+          ],
+        },
+        options: {
+          plugins: {
+            title: {
+              display: true,
+              text: "Monthly Average AQI Trend (2025)",
+            },
+          },
+        },
+      });
+
+      /* -------------------------------
+   Seasonal PM & AQI Comparison
+-------------------------------- */
+      new Chart(document.getElementById("seasonalPollutantChart"), {
+        type: "bar",
+        data: {
+          labels: ["Winter", "Pre-Monsoon", "Monsoon", "Post-Monsoon"],
+          datasets: [
+            { label: "PM2.5 (µg/m³)", data: [96, 72, 38, 65] },
+            { label: "PM10 (µg/m³)", data: [140, 110, 70, 95] },
+            { label: "AQI", data: [178, 130, 68, 115] },
+          ],
+        },
+        options: {
+          plugins: {
+            title: {
+              display: true,
+              text: "Seasonal PM2.5, PM10 & AQI Comparison",
+            },
+          },
+        },
+      });
+
+      /* -------------------------------
+   AQI Category Distribution
+-------------------------------- */
+      new Chart(document.getElementById("aqiCategoryChart"), {
+        type: "doughnut",
+        data: {
+          labels: [
+            "Good",
+            "Moderate",
+            "Unhealthy (SG)",
+            "Unhealthy",
+            "Very Unhealthy",
+          ],
+          datasets: [
+            {
+              data: [15, 28, 26, 21, 10],
+            },
+          ],
+        },
+        options: {
+          plugins: {
+            title: {
+              display: true,
+              text: "AQI Category Distribution (2025)",
+            },
+          },
+        },
+      });
+    </script>
+  </body>
+</html>
