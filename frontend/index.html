@@ -1,239 +1,359 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Dhulo Watch | AQI Dashboard (Phase 1)</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+  <meta charset="UTF-8" />
+  <title>Dhulo Watch – Air Quality Analysis</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <style>
-      body {
-        margin: 0;
-        font-family: Arial, Helvetica, sans-serif;
-        background-color: #f4f6f9;
-        color: #333;
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Inter", sans-serif;
+      background: #f6f8fc;
+      color: #0f172a;
+    }
+
+    header {
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: #fff;
+      padding: 22px 30px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    header p {
+      margin-top: 4px;
+      font-size: 13px;
+      color: #c7d2fe;
+    }
+
+    .container {
+      max-width: 1250px;
+      margin: auto;
+      padding: 26px 30px;
+    }
+
+    .controls {
+      margin-bottom: 22px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    select {
+      padding: 7px 12px;
+      border-radius: 6px;
+      border: 1px solid #cbd5f5;
+    }
+
+    /* KPIs */
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+
+    .kpi {
+      background: #fff;
+      padding: 16px;
+      border-radius: 10px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+    }
+
+    .kpi span {
+      font-size: 12px;
+      color: #64748b;
+    }
+
+    .kpi h2 {
+      margin-top: 6px;
+      font-size: 26px;
+    }
+
+    /* Sections */
+    .section {
+      margin-bottom: 42px;
+    }
+
+    .section h3 {
+      margin-bottom: 6px;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .section p {
+      margin-bottom: 14px;
+      font-size: 13px;
+      color: #475569;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.06);
+    }
+
+    .full-width canvas {
+      height: 380px !important;
+    }
+
+    .half-width canvas {
+      height: 280px !important;
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+    }
+
+    .insight {
+      margin-top: 8px;
+      font-size: 12px;
+      color: #475569;
+    }
+
+    @media (max-width: 900px) {
+      .kpis {
+        grid-template-columns: repeat(2, 1fr);
       }
-
-      header {
-        background-color: #111827;
-        color: #ffffff;
-        padding: 18px 30px;
-      }
-
-      header h2 {
-        margin: 0;
-      }
-
-      .container {
-        padding: 25px 30px;
-      }
-
-      select {
-        padding: 8px;
-        margin-bottom: 20px;
-        font-size: 14px;
-      }
-
-      .cards {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 15px;
-        margin-bottom: 30px;
-      }
-
-      .card {
-        background: #ffffff;
-        padding: 20px;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-      }
-
-      .card h4 {
-        margin: 0;
-        font-size: 13px;
-        color: #6b7280;
-      }
-
-      .card p {
-        margin-top: 10px;
-        font-size: 26px;
-        font-weight: bold;
-      }
-
-      .charts {
-        display: grid;
+      .grid-2 {
         grid-template-columns: 1fr;
-        gap: 35px;
       }
+    }
+  </style>
+</head>
 
-      canvas {
-        background: #ffffff;
-        padding: 15px;
-        border-radius: 8px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-      }
+<body>
 
-      .insight {
-        margin-top: 30px;
-        background: #ffffff;
-        padding: 20px;
-        border-left: 5px solid #2563eb;
-        border-radius: 4px;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
-      }
+<header>
+  <h1>Dhulo Watch – Air Quality Analysis</h1>
+  <p>Multi-station AQI trends and pollutant drivers (Jan 2024 – Oct 2025)</p>
+</header>
 
-      .insight strong {
-        display: block;
-        margin-bottom: 6px;
-      }
-    </style>
-  </head>
+<div class="container">
 
-  <body>
-    <header>
-      <h2>Dhulo Watch – Air Quality Dashboard (2025)</h2>
-    </header>
+  <!-- Controls -->
+  <div class="controls">
+    <strong>Station:</strong>
+    <select id="station"></select>
+  </div>
 
-    <div class="container">
-      <!-- Station Selector -->
-      <label for="station"><strong>Select Monitoring Station:</strong></label
-      ><br />
-      <select id="station">
-        <option>Kathmandu</option>
-        <option>Lalitpur</option>
-        <option>Pokhara</option>
-      </select>
+  <!-- KPIs -->
+  <div class="kpis">
+    <div class="kpi"><span>Average AQI</span><h2 id="avgAQI">—</h2></div>
+    <div class="kpi"><span>Worst AQI</span><h2 id="maxAQI">—</h2></div>
+    <div class="kpi"><span>% Unhealthy Days</span><h2 id="unhealthyPct">—</h2></div>
+    <div class="kpi"><span>Most Polluted Season</span><h2 id="worstSeason">—</h2></div>
+  </div>
 
-      <!-- KPI Cards -->
-      <div class="cards">
-        <div class="card">
-          <h4>Worst Month AQI</h4>
-          <p>178</p>
-        </div>
-        <div class="card">
-          <h4>Cleanest Month AQI</h4>
-          <p>62</p>
-        </div>
-        <div class="card">
-          <h4>Highest PM2.5</h4>
-          <p>96 µg/m³</p>
-        </div>
-        <div class="card">
-          <h4>Most Polluted Season</h4>
-          <p>Winter</p>
-        </div>
-      </div>
+  <!-- Section 1 -->
+  <div class="section">
+    <h3>1. Spatial Context – AQI by Station</h3>
+    <p>Comparison of long-term average AQI across monitoring stations.</p>
+    <div class="card full-width">
+      <canvas id="stationAqi"></canvas>
+      <div class="insight">Consistently high values indicate chronic pollution hotspots.</div>
+    </div>
+  </div>
 
-      <!-- Charts -->
-      <div class="charts">
-        <canvas id="monthlyAqiChart"></canvas>
-        <canvas id="seasonalPollutantChart"></canvas>
-        <canvas id="aqiCategoryChart"></canvas>
-      </div>
+  <!-- Section 2 -->
+  <div class="section">
+    <h3>2. Temporal Evolution – Monthly AQI Trend</h3>
+    <p>Seasonal and long-term AQI variation for the selected station.</p>
+    <div class="card full-width">
+      <canvas id="monthlyAqi"></canvas>
+      <div class="insight">Winter peaks and monsoon improvement are clearly visible.</div>
+    </div>
+  </div>
 
-      <!-- Insight Box -->
-      <div class="insight">
-        <strong>Key Insight</strong>
-        Air quality in 2025 shows strong seasonality. Winter months experience
-        the highest AQI due to temperature inversion and increased PM2.5
-        concentration, while monsoon months show significant improvement due to
-        pollutant washout.
+  <!-- Section 3 & 4 -->
+  <div class="section grid-2">
+    <div>
+      <h3>3. Seasonal Drivers – Pollutants vs AQI</h3>
+      <p>Contribution of PM2.5 and PM10 across seasons.</p>
+      <div class="card half-width">
+        <canvas id="seasonalBar"></canvas>
+        <div class="insight">PM2.5 dominates AQI during winter months.</div>
       </div>
     </div>
 
-    <script>
-      /* -------------------------------
-   Monthly AQI Trend – 2025
--------------------------------- */
-      new Chart(document.getElementById("monthlyAqiChart"), {
-        type: "line",
-        data: {
-          labels: [
-            "Jan",
-            "Feb",
-            "Mar",
-            "Apr",
-            "May",
-            "Jun",
-            "Jul",
-            "Aug",
-            "Sep",
-            "Oct",
-            "Nov",
-            "Dec",
-          ],
-          datasets: [
-            {
-              label: "Average AQI",
-              data: [168, 160, 145, 120, 105, 82, 65, 62, 78, 110, 150, 178],
-              borderWidth: 2,
-              tension: 0.3,
-            },
-          ],
-        },
-        options: {
-          plugins: {
-            title: {
-              display: true,
-              text: "Monthly Average AQI Trend (2025)",
-            },
-          },
-        },
-      });
+    <div>
+      <h3>4. Weather Interaction</h3>
+      <p>Temperature and humidity relationship with AQI.</p>
+      <div class="card half-width">
+        <canvas id="weatherImpact"></canvas>
+        <div class="insight">Lower temperature and higher humidity worsen dispersion.</div>
+      </div>
+    </div>
+  </div>
 
-      /* -------------------------------
-   Seasonal PM & AQI Comparison
--------------------------------- */
-      new Chart(document.getElementById("seasonalPollutantChart"), {
-        type: "bar",
-        data: {
-          labels: ["Winter", "Pre-Monsoon", "Monsoon", "Post-Monsoon"],
-          datasets: [
-            { label: "PM2.5 (µg/m³)", data: [96, 72, 38, 65] },
-            { label: "PM10 (µg/m³)", data: [140, 110, 70, 95] },
-            { label: "AQI", data: [178, 130, 68, 115] },
-          ],
-        },
-        options: {
-          plugins: {
-            title: {
-              display: true,
-              text: "Seasonal PM2.5, PM10 & AQI Comparison",
-            },
-          },
-        },
-      });
+  <!-- Section 5 -->
+  <div class="section">
+    <h3>5. Public Health Exposure – Unhealthy Days</h3>
+    <p>Monthly count of days exceeding unhealthy AQI thresholds.</p>
+    <div class="card full-width">
+      <canvas id="unhealthyTimeline"></canvas>
+      <div class="insight">Identifies periods of highest population exposure risk.</div>
+    </div>
+  </div>
 
-      /* -------------------------------
-   AQI Category Distribution
--------------------------------- */
-      new Chart(document.getElementById("aqiCategoryChart"), {
-        type: "doughnut",
-        data: {
-          labels: [
-            "Good",
-            "Moderate",
-            "Unhealthy (SG)",
-            "Unhealthy",
-            "Very Unhealthy",
-          ],
-          datasets: [
-            {
-              data: [15, 28, 26, 21, 10],
-            },
-          ],
-        },
-        options: {
-          plugins: {
-            title: {
-              display: true,
-              text: "AQI Category Distribution (2025)",
-            },
-          },
-        },
-      });
-    </script>
-  </body>
+</div>
+
+<script>
+const API = "http://127.0.0.1:8000";
+const charts = {};
+
+function drawChart(id, config) {
+  if (charts[id]) charts[id].destroy();
+  charts[id] = new Chart(document.getElementById(id), config);
+}
+
+async function loadStations() {
+  const r = await fetch(`${API}/stations`);
+  const stations = await r.json();
+  const sel = document.getElementById("station");
+
+  stations.forEach(s => {
+    const opt = document.createElement("option");
+    opt.value = opt.text = s;
+    sel.add(opt);
+  });
+
+  loadDashboard(stations[0]);
+}
+
+async function loadDashboard(station) {
+  await loadKPIs(station);
+  await loadStationAQI();
+  await loadMonthly(station);
+  await loadSeasonal(station);
+  await loadWeather(station);
+  await loadUnhealthy(station);
+}
+
+async function loadKPIs(station) {
+  const r = await fetch(`${API}/kpis?station=${station}`);
+  const k = await r.json();
+  avgAQI.innerText = k.avg_aqi;
+  maxAQI.innerText = k.max_aqi;
+  unhealthyPct.innerText = (k.days ? Math.round((k.max_aqi / 500) * 100) : 0) + "%";
+  worstSeason.innerText = "Winter";
+}
+
+async function loadStationAQI() {
+  const r = await fetch(`${API}/station_aqi`);
+  const d = await r.json();
+
+  drawChart("stationAqi", {
+    type: "bar",
+    data: {
+      labels: d.stations,
+      datasets: [{
+        label: "Average AQI",
+        data: d.aqi,
+        borderWidth: 1
+      }]
+    },
+    options: {
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
+async function loadMonthly(station) {
+  const r = await fetch(`${API}/monthly?station=${station}&year=2024`);
+  const d = await r.json();
+
+  drawChart("monthlyAqi", {
+    type: "line",
+    data: {
+      labels: d.labels,
+      datasets: [{
+        label: "AQI",
+        data: d.values,
+        tension: 0.35,
+        pointRadius: 4,
+        borderWidth: 3,
+        fill: false
+      }]
+    },
+    options: { maintainAspectRatio: false }
+  });
+}
+
+async function loadSeasonal(station) {
+  const r = await fetch(`${API}/seasonal?station=${station}`);
+  const d = await r.json();
+
+  drawChart("seasonalBar", {
+    type: "bar",
+    data: {
+      labels: d.seasons,
+      datasets: [
+        { label: "PM2.5", data: d.pm25 },
+        { label: "PM10", data: d.pm10 },
+        { label: "AQI", data: d.aqi }
+      ]
+    },
+    options: { maintainAspectRatio: false }
+  });
+}
+
+async function loadWeather(station) {
+  const r = await fetch(`${API}/weather?station=${station}`);
+  const d = await r.json();
+
+  drawChart("weatherImpact", {
+    type: "scatter",
+    data: {
+      datasets: [
+        { label: "Temperature vs AQI", data: d.temperature.map((t,i)=>({x:t,y:d.aqi[i]})) },
+        { label: "Humidity vs AQI", data: d.humidity.map((h,i)=>({x:h,y:d.aqi[i]})) }
+      ]
+    },
+    options: { maintainAspectRatio: false }
+  });
+}
+
+async function loadUnhealthy(station) {
+  const r = await fetch(`${API}/unhealthy_days?station=${station}`);
+  const d = await r.json();
+
+  drawChart("unhealthyTimeline", {
+    type: "line",
+    data: {
+      labels: d.labels,
+      datasets: [{
+        label: "Unhealthy Days",
+        data: d.values,
+        fill: true,
+        tension: 0.3,
+        borderWidth: 2
+      }]
+    },
+    options: { maintainAspectRatio: false }
+  });
+}
+
+document.getElementById("station").addEventListener("change", e => loadDashboard(e.target.value));
+loadStations();
+</script>
+
+</body>
 </html>
