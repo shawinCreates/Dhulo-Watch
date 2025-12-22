@@ -16,7 +16,7 @@ app.add_middleware(
 # -------------------------------
 # Load and preprocess data
 # -------------------------------
-_df = pd.read_csv("../data/NepalLatestAQI.csv")
+_df = pd.read_csv("../data/CleanData.csv")
 _df['date'] = pd.to_datetime(_df['date'])
 _df['year'] = _df['date'].dt.year
 _df['month'] = _df['date'].dt.month
