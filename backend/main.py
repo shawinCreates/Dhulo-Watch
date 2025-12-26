@@ -13,6 +13,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+import joblib
+
+bundle = joblib.load("model_bundle.pkl")
+model = bundle["model"]
+FEATURES = bundle["features"]
+
+
 # -------------------------------
 # Load and preprocess data
 # -------------------------------
@@ -138,4 +145,79 @@ def unhealthy_days(station: str, threshold: int = 100):
     return {
         "labels": [str(x) for x in g.index],
         "values": g.values.tolist()
+    }
+
+
+def build_latest_features(df: pd.DataFrame, station: str, target_date: pd.Timestamp):
+    df = df.sort_values("date")
+    latest = df.iloc[-1]
+
+    row = {}
+
+    base_cols = [
+        "latitude", "longitude",
+        "pm2_5", "pm10", "no2", "so2", "o3",
+        "temperature_C", "relative_humidity_%"
+    ]
+    for c in base_cols:
+        row[c] = latest[c]
+
+    # calendar
+    row["month"] = target_date.month
+    row["day"] = target_date.day
+    row["dayofweek"] = target_date.dayofweek
+    row["is_weekend"] = int(target_date.dayofweek in [5, 6])
+
+    row["month_sin"] = np.sin(2 * np.pi * row["month"] / 12)
+    row["month_cos"] = np.cos(2 * np.pi * row["month"] / 12)
+    row["dow_sin"] = np.sin(2 * np.pi * row["dayofweek"] / 7)
+    row["dow_cos"] = np.cos(2 * np.pi * row["dayofweek"] / 7)
+
+    # lags & rolling (same as training)
+    lag_cols = [
+        "pm2_5","pm10","no2","so2","o3",
+        "temperature_C","relative_humidity_%"
+    ]
+
+    for c in lag_cols:
+        row[f"{c}_lag1"] = df[c].iloc[-1]
+        row[f"{c}_lag3"] = df[c].iloc[-3]
+        row[f"{c}_lag7"] = df[c].iloc[-7]
+        row[f"{c}_roll3"] = df[c].iloc[-3:].mean()
+        row[f"{c}_roll7"] = df[c].iloc[-7:].mean()
+
+    for s in _df["station"].unique():
+        row[f"st_{s}"] = 1 if s == station else 0
+
+    X = pd.DataFrame([row])
+    X = X.reindex(columns=FEATURES, fill_value=0)
+    return X
+
+@app.get("/forecast")
+def forecast_aqi(station: str, days: int = 7):
+    df = _df[_df["station"] == station].sort_values("date").copy()
+
+    preds = []
+    labels = []
+
+    start_date = pd.Timestamp.today().normalize()
+
+    for i in range(days):
+        target_date = start_date + pd.Timedelta(days=i)
+
+        X = build_latest_features(df, station, target_date)
+        y_hat = float(model.predict(X)[0])
+
+        preds.append(round(y_hat, 1))
+        labels.append(str(target_date.date()))
+
+        new_row = df.iloc[-1].copy()
+        new_row["date"] = target_date
+        new_row["aqi"] = y_hat
+
+        df = pd.concat([df, pd.DataFrame([new_row])], ignore_index=True)
+
+    return {
+        "labels": labels,
+        "values": preds
     }

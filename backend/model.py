@@ -30,7 +30,7 @@ dataset['month_cos'] = np.cos(2 * np.pi * dataset['month']/12)
 dataset['dow_sin'] = np.sin(2 * np.pi * dataset['dayofweek']/7)
 dataset['dow_cos'] = np.cos(2 * np.pi * dataset['dayofweek']/7)
 dataset.columns
-cols = ['aqi', 'pm2_5', 'pm10', 'no2', 'so2', 'o3', 'temperature_C', 'relative_humidity_%']
+cols = ['pm2_5', 'pm10', 'no2', 'so2', 'o3', 'temperature_C', 'relative_humidity_%']
 lags = [1, 3, 7]
 rolls = [3, 7]
 dataset = dataset.sort_values(['station', 'date']).reset_index(drop=True)
@@ -106,4 +106,8 @@ print("Test      :", metrics_test)
 model.score(x_test, y_test)*100
 
 import joblib
-joblib.dump(model, 'model.pkl')
+feature_names = x_train.columns.tolist()
+joblib.dump(
+    {"model": model, "features": feature_names},
+    "model_bundle.pkl"
+)
