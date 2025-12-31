@@ -1,4 +1,4 @@
-const API = "http://127.0.0.1:8000";
+const API = "";
 const charts = {};
 
 function createGradient(ctx, chartArea, baseColor = "#4A90E2") {

@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import pandas as pd
 import numpy as np
@@ -17,6 +18,8 @@ app.add_middleware(
 bundle = joblib.load("model_bundle_multistep.pkl")
 MODELS = bundle["models"]  
 FEATURES = bundle["features"]
+
+app.mount("/", StaticFiles(directory="../frontend", html=True), name="frontend")
 
 _df = pd.read_csv("../data/CleanData.csv")
 _df["date"] = pd.to_datetime(_df["date"])
