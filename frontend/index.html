@@ -283,9 +283,8 @@
         const k = await r.json();
         avgAQI.innerText = k.avg_aqi;
         maxAQI.innerText = k.max_aqi;
-        unhealthyPct.innerText =
-          (k.days ? Math.round((k.max_aqi / 500) * 100) : 0) + "%";
-        worstSeason.innerText = "Winter";
+        unhealthyPct.innerText = k.unhealthy_pct + "%";
+        worstSeason.innerText = k.worst_season;
       }
 
       async function loadStationAQI() {
