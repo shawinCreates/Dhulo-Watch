@@ -14,8 +14,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-bundle = joblib.load("model_bundle.pkl")
-model = bundle["model"]
+bundle = joblib.load("model_bundle_multistep.pkl")
+MODELS = bundle["models"]  
 FEATURES = bundle["features"]
 
 _df = pd.read_csv("../data/CleanData.csv")
@@ -118,98 +118,56 @@ def unhealthy_days(station: str, threshold: int = 100):
         "values": g.values.tolist(),
     }
 
-def build_latest_features(df: pd.DataFrame, station: str, target_date: pd.Timestamp):
+def build_features_for_date(df, station, target_date):
     df = df.sort_values("date")
-    latest = df.iloc[-1]
+    latest = df.iloc[-1]  # use last available row
 
     row = {}
-
-    base_cols = [
-        "latitude", "longitude",
-        "pm2_5", "pm10", "no2", "so2", "o3",
-        "temperature_C", "relative_humidity_%"
-    ]
-
+    base_cols = ["latitude","longitude","pm2_5","pm10","no2","so2","o3","temperature_C","relative_humidity_%"]
     for c in base_cols:
         row[c] = latest[c]
 
     row["month"] = target_date.month
     row["day"] = target_date.day
     row["dayofweek"] = target_date.dayofweek
-    row["is_weekend"] = int(target_date.dayofweek in [5, 6])
+    row["is_weekend"] = int(target_date.dayofweek >= 5)
 
-    row["month_sin"] = np.sin(2 * np.pi * row["month"] / 12)
-    row["month_cos"] = np.cos(2 * np.pi * row["month"] / 12)
-    row["dow_sin"] = np.sin(2 * np.pi * row["dayofweek"] / 7)
-    row["dow_cos"] = np.cos(2 * np.pi * row["dayofweek"] / 7)
+    row["month_sin"] = np.sin(2*np.pi*row["month"]/12)
+    row["month_cos"] = np.cos(2*np.pi*row["month"]/12)
+    row["dow_sin"] = np.sin(2*np.pi*row["dayofweek"]/7)
+    row["dow_cos"] = np.cos(2*np.pi*row["dayofweek"]/7)
 
-    lag_cols = [
-        "pm2_5","pm10","no2","so2","o3",
-        "temperature_C","relative_humidity_%"
-    ]
-
+    lag_cols = ["pm2_5","pm10","no2","so2","o3","temperature_C","relative_humidity_%"]
     for c in lag_cols:
-        row[f"{c}_lag1"] = df[c].iloc[-1]
-        row[f"{c}_lag3"] = df[c].iloc[-3]
-        row[f"{c}_lag7"] = df[c].iloc[-7]
-        row[f"{c}_roll3"] = df[c].iloc[-3:].mean()
-        row[f"{c}_roll7"] = df[c].iloc[-7:].mean()
-
-    row["aqi_lag1"] = df["aqi"].iloc[-1]
-    row["aqi_lag3"] = df["aqi"].iloc[-3]
-    row["aqi_lag7"] = df["aqi"].iloc[-7]
+        for lag in [1,3,7]:
+            row[f"{c}_lag{lag}"] = df[c].iloc[-lag] if len(df) >= lag else latest[c]
+        for w in [3,7]:
+            row[f"{c}_roll{w}"] = df[c].iloc[-w:].mean() if len(df) >= w else df[c].mean()
 
     for s in _df["station"].unique():
-        row[f"st_{s}"] = int(s == station)
+        row[f"st_{s}"] = 1 if s == station else 0
 
     X = pd.DataFrame([row])
     return X.reindex(columns=FEATURES, fill_value=0)
 
 @app.get("/forecast")
-def forecast_aqi(station: str, days: int = 7):
-    df = _df[_df["station"] == station].sort_values("date").copy()
+def forecast_aqi(station: str):
+    df = _df[_df["station"] == station].copy()
+    today = pd.Timestamp.today().normalize()
+    horizons = [0, 1, 3, 7]  
 
-    preds = []
-    labels = []
+    labels, values = [], []
 
-    start_date = df["date"].max() + pd.Timedelta(days=1)
+    for h in horizons:
+        target_date = today + pd.Timedelta(days=h)
+        try:
+            X = build_features_for_date(df, station, target_date)
+            pred = float(np.clip(MODELS[h].predict(X)[0], 0, 500))
+            pred = round(pred, 2)
+        except Exception:
+            pred = None
 
-    DRIFT = {
-        "pm2_5": 0.05,
-        "pm10": 0.04,
-        "no2": 0.03,
-        "so2": 0.02,
-        "o3": 0.03,
-        "temperature_C": 0.01,
-        "relative_humidity_%": 0.01,
-    }
-
-    for i in range(days):
-        target_date = start_date + pd.Timedelta(days=i)
-
-        X = build_latest_features(df, station, target_date)
-        y_hat = float(model.predict(X)[0])
-
-        preds.append(round(y_hat, 1))
         labels.append(str(target_date.date()))
+        values.append(pred)
 
-        last = df.iloc[-1].copy()
-
-        for col, pct in DRIFT.items():
-            trend = (
-                df[col].iloc[-7:].mean()
-                - df[col].iloc[-14:-7].mean()
-                if len(df) >= 14
-                else 0
-            )
-            last[col] = max(0, last[col] + trend * pct)
-
-        last["aqi"] = y_hat
-        last["date"] = target_date
-
-        df = pd.concat([df, pd.DataFrame([last])], ignore_index=True)
-
-    return {
-        "labels": labels,
-        "values": preds
-    }
+    return {"labels": labels, "values": values}

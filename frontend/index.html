@@ -2,159 +2,42 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Dhulo Watch – Air Quality Analysis</title>
+    <title>Dhulo Watch – Air Quality Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- Font -->
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-
-    <style>
-      body {
-        margin: 0;
-        font-family: "Inter", sans-serif;
-        background: #f6f8fc;
-        color: #0f172a;
-      }
-
-      header {
-        background: linear-gradient(135deg, #0f172a, #1e293b);
-        color: #fff;
-        padding: 22px 30px;
-      }
-
-      header h1 {
-        margin: 0;
-        font-size: 22px;
-        font-weight: 600;
-      }
-
-      header p {
-        margin-top: 4px;
-        font-size: 13px;
-        color: #c7d2fe;
-      }
-
-      .container {
-        max-width: 1250px;
-        margin: auto;
-        padding: 26px 30px;
-      }
-
-      .controls {
-        margin-bottom: 22px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-      }
-
-      select {
-        padding: 7px 12px;
-        border-radius: 6px;
-        border: 1px solid #cbd5f5;
-      }
-
-      /* KPIs */
-      .kpis {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 16px;
-        margin-bottom: 36px;
-      }
-
-      .kpi {
-        background: #fff;
-        padding: 16px;
-        border-radius: 10px;
-        box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
-      }
-
-      .kpi span {
-        font-size: 12px;
-        color: #64748b;
-      }
-
-      .kpi h2 {
-        margin-top: 6px;
-        font-size: 26px;
-      }
-
-      /* Sections */
-      .section {
-        margin-bottom: 42px;
-      }
-
-      .section h3 {
-        margin-bottom: 6px;
-        font-size: 18px;
-        font-weight: 600;
-      }
-
-      .section p {
-        margin-bottom: 14px;
-        font-size: 13px;
-        color: #475569;
-      }
-
-      .card {
-        background: #fff;
-        border-radius: 12px;
-        padding: 12px;
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
-      }
-
-      .full-width canvas {
-        height: 380px !important;
-      }
-
-      .half-width canvas {
-        height: 280px !important;
-      }
-
-      .grid-2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 22px;
-      }
-
-      .insight {
-        margin-top: 8px;
-        font-size: 12px;
-        color: #475569;
-      }
-
-      @media (max-width: 900px) {
-        .kpis {
-          grid-template-columns: repeat(2, 1fr);
-        }
-        .grid-2 {
-          grid-template-columns: 1fr;
-        }
-      }
-    </style>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
-
   <body>
     <header>
-      <h1>Dhulo Watch – Air Quality Analysis</h1>
-      <p>
-        Multi-station AQI trends and pollutant drivers (Jan 2024 – Oct 2025)
+      <h1>Dhulo Watch</h1>
+      <p class="tagline">Monitoring Nepal’s air, one breath at a time</p>
+      <p class="subheader">
+        Comprehensive AQI trends, seasonal drivers, and real-time forecasts
       </p>
     </header>
 
     <div class="container">
-      <!-- Controls -->
       <div class="controls">
-        <strong>Station:</strong>
+        <strong>Select Station:</strong>
         <select id="station"></select>
       </div>
 
-      <!-- KPIs -->
+      <div class="kpis">
+        <div class="kpi today-aqi">
+          <span>Today's Predicted AQI</span>
+          <h2 id="todayPredicted">—</h2>
+        </div>
+        <div class="kpi today-aqi">
+          <span>Today's Actual AQI</span>
+          <h2 id="todayActual">—</h2>
+        </div>
+      </div>
+
       <div class="kpis">
         <div class="kpi">
           <span>Average AQI</span>
@@ -175,258 +58,68 @@
       </div>
 
       <div class="section">
-        <h3>6. AQI Forecast – Next 7 Days</h3>
-        <p>Machine-learning based short-term AQI prediction.</p>
-        <div class="card full-width">
-          <canvas id="aqiForecast"></canvas>
-          <div class="insight">
-            Forecast uses historical pollution, weather, and seasonal patterns.
-          </div>
-        </div>
-      </div>
-
-      <!-- Section 1 -->
-      <div class="section">
-        <h3>1. Spatial Context – AQI by Station</h3>
-        <p>Comparison of long-term average AQI across monitoring stations.</p>
-        <div class="card full-width">
+        <h3>1. AQI by Station</h3>
+        <p>Compare long-term air quality across all monitoring stations.</p>
+        <div class="card">
           <canvas id="stationAqi"></canvas>
-          <div class="insight">
-            Consistently high values indicate chronic pollution hotspots.
-          </div>
         </div>
       </div>
 
-      <!-- Section 2 -->
       <div class="section">
-        <h3>2. Temporal Evolution – Monthly AQI Trend</h3>
-        <p>Seasonal and long-term AQI variation for the selected station.</p>
-        <div class="card full-width">
+        <h3>2. Monthly AQI Trend</h3>
+        <p>
+          Visualize seasonal changes and historical AQI trends for the selected
+          station.
+        </p>
+        <div class="card">
           <canvas id="monthlyAqi"></canvas>
-          <div class="insight">
-            Winter peaks and monsoon improvement are clearly visible.
-          </div>
         </div>
       </div>
 
-      <!-- Section 3 & 4 -->
+      <div class="section">
+        <h3>3. 7-Day AQI Forecast</h3>
+        <p>
+          Short-term prediction of AQI using historical patterns and weather
+          conditions.
+        </p>
+        <div class="card">
+          <canvas id="aqiForecast"></canvas>
+        </div>
+      </div>
+
       <div class="section grid-2">
         <div>
-          <h3>3. Seasonal Drivers – Pollutants vs AQI</h3>
-          <p>Contribution of PM2.5 and PM10 across seasons.</p>
-          <div class="card half-width">
+          <h3>4. Seasonal Pollutants vs AQI</h3>
+          <p>Contribution of PM2.5 and PM10 during different seasons.</p>
+          <div class="card">
             <canvas id="seasonalBar"></canvas>
-            <div class="insight">PM2.5 dominates AQI during winter months.</div>
           </div>
         </div>
-
         <div>
-          <h3>4. Weather Interaction</h3>
-          <p>Temperature and humidity relationship with AQI.</p>
-          <div class="card half-width">
+          <h3>5. Weather Impact</h3>
+          <p>Relationship between temperature, humidity, and AQI levels.</p>
+          <div class="card">
             <canvas id="weatherImpact"></canvas>
-            <div class="insight">
-              Lower temperature and higher humidity worsen dispersion.
-            </div>
           </div>
         </div>
       </div>
 
-      <!-- Section 5 -->
       <div class="section">
-        <h3>5. Public Health Exposure – Unhealthy Days</h3>
-        <p>Monthly count of days exceeding unhealthy AQI thresholds.</p>
-        <div class="card full-width">
+        <h3>6. Unhealthy Days Exposure</h3>
+        <p>
+          Monthly count of days exceeding unhealthy AQI thresholds, highlighting
+          population risk periods.
+        </p>
+        <div class="card">
           <canvas id="unhealthyTimeline"></canvas>
-          <div class="insight">
-            Identifies periods of highest population exposure risk.
-          </div>
         </div>
       </div>
     </div>
 
-    <script>
-      const API = "http://127.0.0.1:8000";
-      const charts = {};
+    <footer>
+      <p>© 2025 Dhulo Watch. All rights reserved.</p>
+    </footer>
 
-      function drawChart(id, config) {
-        if (charts[id]) charts[id].destroy();
-        charts[id] = new Chart(document.getElementById(id), config);
-      }
-
-      async function loadStations() {
-        const r = await fetch(`${API}/stations`);
-        const stations = await r.json();
-        const sel = document.getElementById("station");
-
-        stations.forEach((s) => {
-          const opt = document.createElement("option");
-          opt.value = opt.text = s;
-          sel.add(opt);
-        });
-
-        loadDashboard(stations[0]);
-      }
-
-      async function loadDashboard(station) {
-        await loadKPIs(station);
-        await loadStationAQI();
-        await loadMonthly(station);
-        await loadSeasonal(station);
-        await loadWeather(station);
-        await loadUnhealthy(station);
-        await loadForecast(station);
-      }
-
-      async function loadKPIs(station) {
-        const r = await fetch(`${API}/kpis?station=${station}`);
-        const k = await r.json();
-        avgAQI.innerText = k.avg_aqi;
-        maxAQI.innerText = k.max_aqi;
-        unhealthyPct.innerText = k.unhealthy_pct + "%";
-        worstSeason.innerText = k.worst_season;
-      }
-
-      async function loadStationAQI() {
-        const r = await fetch(`${API}/station_aqi`);
-        const d = await r.json();
-
-        drawChart("stationAqi", {
-          type: "bar",
-          data: {
-            labels: d.stations,
-            datasets: [
-              {
-                label: "Average AQI",
-                data: d.aqi,
-                borderWidth: 1,
-              },
-            ],
-          },
-          options: {
-            maintainAspectRatio: false,
-            scales: {
-              y: { beginAtZero: true },
-            },
-          },
-        });
-      }
-
-      async function loadMonthly(station) {
-        const r = await fetch(`${API}/monthly?station=${station}&year=2024`);
-        const d = await r.json();
-
-        drawChart("monthlyAqi", {
-          type: "line",
-          data: {
-            labels: d.labels,
-            datasets: [
-              {
-                label: "AQI",
-                data: d.values,
-                tension: 0.35,
-                pointRadius: 4,
-                borderWidth: 3,
-                fill: false,
-              },
-            ],
-          },
-          options: { maintainAspectRatio: false },
-        });
-      }
-
-      async function loadSeasonal(station) {
-        const r = await fetch(`${API}/seasonal?station=${station}`);
-        const d = await r.json();
-
-        drawChart("seasonalBar", {
-          type: "bar",
-          data: {
-            labels: d.seasons,
-            datasets: [
-              { label: "PM2.5", data: d.pm25 },
-              { label: "PM10", data: d.pm10 },
-              { label: "AQI", data: d.aqi },
-            ],
-          },
-          options: { maintainAspectRatio: false },
-        });
-      }
-
-      async function loadWeather(station) {
-        const r = await fetch(`${API}/weather?station=${station}`);
-        const d = await r.json();
-
-        drawChart("weatherImpact", {
-          type: "scatter",
-          data: {
-            datasets: [
-              {
-                label: "Temperature vs AQI",
-                data: d.temperature.map((t, i) => ({ x: t, y: d.aqi[i] })),
-              },
-              {
-                label: "Humidity vs AQI",
-                data: d.humidity.map((h, i) => ({ x: h, y: d.aqi[i] })),
-              },
-            ],
-          },
-          options: { maintainAspectRatio: false },
-        });
-      }
-
-      async function loadUnhealthy(station) {
-        const r = await fetch(`${API}/unhealthy_days?station=${station}`);
-        const d = await r.json();
-
-        drawChart("unhealthyTimeline", {
-          type: "line",
-          data: {
-            labels: d.labels,
-            datasets: [
-              {
-                label: "Unhealthy Days",
-                data: d.values,
-                fill: true,
-                tension: 0.3,
-                borderWidth: 2,
-              },
-            ],
-          },
-          options: { maintainAspectRatio: false },
-        });
-      }
-
-      async function loadForecast(station) {
-        const r = await fetch(`${API}/forecast?station=${station}`);
-        const d = await r.json();
-
-        drawChart("aqiForecast", {
-          type: "line",
-          data: {
-            labels: d.labels,
-            datasets: [
-              {
-                label: "Predicted AQI",
-                data: d.values,
-                borderWidth: 3,
-                tension: 0.35,
-                pointRadius: 4,
-                fill: false,
-              },
-            ],
-          },
-          options: {
-            maintainAspectRatio: false,
-            scales: { y: { beginAtZero: true } },
-          },
-        });
-      }
-
-      document
-        .getElementById("station")
-        .addEventListener("change", (e) => loadDashboard(e.target.value));
-      loadStations();
-    </script>
+    <script src="script.js"></script>
   </body>
 </html>
