@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,7 +16,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-bundle = joblib.load("model_bundle_multistep.pkl")
+BASE_DIR = os.path.dirname(__file__) 
+bundle_path = os.path.join(BASE_DIR, "model_bundle_multistep.pkl")
+bundle = joblib.load(bundle_path)
 MODELS = bundle["models"]  
 FEATURES = bundle["features"]
 
