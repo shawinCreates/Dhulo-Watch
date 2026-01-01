@@ -22,7 +22,7 @@ bundle = joblib.load(bundle_path)
 MODELS = bundle["models"]  
 FEATURES = bundle["features"]
 
-app.mount("/", StaticFiles(directory="../frontend", html=True), name="frontend")
+# app.mount("/", StaticFiles(directory="../frontend", html=True), name="frontend")
 
 _df = pd.read_csv("../data/CleanData.csv")
 _df["date"] = pd.to_datetime(_df["date"])
