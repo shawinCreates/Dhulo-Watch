@@ -1,4 +1,4 @@
-const API = "https://dhulowatch-backend.onrender.com";
+const API = " https://dhulo-watch.onrender.com";
 const charts = {};
 
 function createGradient(ctx, chartArea, baseColor = "#4A90E2") {
