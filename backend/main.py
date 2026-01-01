@@ -24,7 +24,8 @@ FEATURES = bundle["features"]
 
 # app.mount("/", StaticFiles(directory="../frontend", html=True), name="frontend")
 
-_df = pd.read_csv("../data/CleanData.csv")
+DATA_PATH = os.path.join(os.path.dirname(__file__), "CleanData.csv")
+_df = pd.read_csv(DATA_PATH)
 _df["date"] = pd.to_datetime(_df["date"])
 _df["year"] = _df["date"].dt.year
 _df["month"] = _df["date"].dt.month
