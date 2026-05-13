@@ -16,13 +16,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-BASE_DIR = os.path.dirname(__file__) 
+@app.get("/health")
+def health():
+    return {
+        "status": "healthy",
+        "service": "Dhulo Watch API"
+    }
+
+BASE_DIR = os.path.abspath(
+    os.path.dirname(__file__)
+)
 bundle_path = os.path.join(BASE_DIR, "model_bundle_multistep.pkl")
 bundle = joblib.load(bundle_path)
 MODELS = bundle["models"]  
 FEATURES = bundle["features"]
 
-# app.mount("/", StaticFiles(directory="../frontend", html=True), name="frontend")
 
 DATA_PATH = os.path.join(os.path.dirname(__file__), "CleanData.csv")
 _df = pd.read_csv(DATA_PATH)
@@ -178,3 +186,18 @@ def forecast_aqi(station: str):
         values.append(pred)
 
     return {"labels": labels, "values": values}
+
+FRONTEND_PATH = os.path.join(
+    BASE_DIR,
+    "..",
+    "frontend"
+)
+
+app.mount(
+    "/",
+    StaticFiles(
+        directory=FRONTEND_PATH,
+        html=True
+    ),
+    name="frontend",
+)

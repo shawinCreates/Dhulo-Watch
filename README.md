@@ -83,3 +83,28 @@ uvicorn main:app --reload
 - Model explainability (SHAP)
 - Dockerized deployment
 - Cloud hosting (AWS / GCP / Azure)
+
+```
+Dhulo Watch
+├─ LICENSE
+├─ README.md
+├─ backend
+│  ├─ CleanData.csv
+│  ├─ main.py
+│  ├─ model.py
+│  ├─ model_bundle_multistep.pkl
+│  └─ requirements.txt
+├─ data
+│  └─ NepalLatestAQI.csv
+├─ frontend
+│  ├─ index.html
+│  ├─ script.js
+│  └─ style.css
+├─ model
+│  ├─ LightGBM.ipynb
+│  └─ RFRegressor.ipynb
+└─ notebooks
+   ├─ EDA.ipynb
+   └─ datacleaning.ipynb
+
+```
